@@ -12,14 +12,17 @@ An immersive 3D avatar chat application that brings AI conversations to life thr
 - **🎭 3D Avatar Integration**: Realistic 3D avatars using Three.js and React Three Fiber
 - **🗣️ Lip Sync Technology**: Advanced lip synchronization with audio using custom algorithms
 - **🧠 AI-Powered Conversations**: Integration with Large Language Models for intelligent responses
-- **🔊 High-Quality TTS**: Multiple TTS providers including ElevenLabs and Sarvam AI
+- **🔊 High-Quality TTS**: Multiple TTS providers including ElevenLabs and Sarvam AI with automatic text chunking
+- **📚 RAG System**: Retrieval-Augmented Generation with mental health knowledge base
+- **🤖 Local AI Support**: Optional Ollama integration for private, local AI inference  
+- **🔍 Semantic Search**: Vector-based document retrieval for contextually relevant responses
 - **⚡ Real-time Communication**: Seamless real-time chat experience
 - **🎨 Modern UI/UX**: Clean, responsive design built with Tailwind CSS
 - **📱 Cross-Platform**: Works across desktop and mobile devices
 
 ## 🚀 Live Demo
 
-**🌐 [View Live Application](https://genaihacks-43vp6h1a2-liltimothy64s-projects.vercel.app)**
+**🌐 [View Live Application](https://genaihacks.vercel.app/)**
 
 ## 🛠️ Tech Stack
 
@@ -30,6 +33,15 @@ An immersive 3D avatar chat application that brings AI conversations to life thr
 - **Three.js** - 3D graphics and WebGL rendering
 - **React Three Fiber** - React renderer for Three.js
 - **React Three Drei** - Useful helpers for React Three Fiber
+
+### Backend & AI Infrastructure
+- **FastAPI** - Modern Python web framework for API development
+- **LangChain** - Framework for building LLM-powered applications
+- **Ollama** - Local LLM inference with custom mental health model
+- **ChromaDB** - Vector database for document storage and retrieval
+- **HuggingFace Transformers** - Sentence embedding models for semantic search
+- **Pandas** - Data preprocessing and manipulation
+- **RAG (Retrieval-Augmented Generation)** - Context-aware AI responses
 
 ### Styling & UI
 - **Tailwind CSS** - Utility-first CSS framework
@@ -49,11 +61,18 @@ An immersive 3D avatar chat application that brings AI conversations to life thr
 
 Before running this application, ensure you have:
 
+### Frontend Requirements
 - **Node.js** (v18 or higher)
 - **npm** or **yarn** package manager
 - **API Keys** for:
   - ElevenLabs API
   - Sarvam AI (optional)
+
+### Backend Requirements (Optional - for local AI)
+- **Python** (v3.8 or higher)
+- **Ollama** - For running local LLM models
+- **Data CSV** - Mental health conversation dataset in `data/data.csv`
+- **System Requirements**: 8GB+ RAM recommended for local AI inference
 
 ## ⚙️ Installation & Setup
 
@@ -106,6 +125,12 @@ src/
 ├── assets/              # Static assets
 └── styles/              # CSS and styling files
 
+backend/                 # Python backend services
+├── api.py              # FastAPI server and endpoints
+├── data_preprocessing.py # Data cleaning and chunking
+├── vectorization.py     # Document embedding and vector storage
+└── retrieval_aug.py    # RAG chain setup and LLM integration
+
 api/
 └── proxy.js            # Vercel serverless functions
 
@@ -130,6 +155,107 @@ public/
 - **Real-time Messaging**: Instant message handling and display
 - **Typing Indicators**: Visual feedback for ongoing conversations
 - **Message History**: Persistent chat history management
+
+### Backend AI System
+- **RAG Architecture**: Retrieval-Augmented Generation for context-aware responses
+- **Mental Health Model**: Custom Ollama model (`final:latest`) trained for psychology support
+- **Vector Search**: Semantic similarity search using ChromaDB and HuggingFace embeddings
+- **Document Processing**: Intelligent text chunking and preprocessing pipeline
+- **FastAPI Server**: High-performance async API with CORS support
+
+## 🧠 Backend Architecture
+
+The backend implements a sophisticated RAG (Retrieval-Augmented Generation) system for delivering contextually relevant mental health support:
+
+### 📊 Data Processing Pipeline (`data_preprocessing.py`)
+```python
+def preprocess():
+    # Clean and normalize text data
+    # Chunk documents with overlap for better retrieval
+    # Structure data with metadata for enhanced search
+```
+
+**Features:**
+- Text cleaning and normalization
+- Smart chunking with 500-word segments and 50-word overlap
+- Metadata preservation for source tracking
+- CSV data ingestion and processing
+
+### 🔍 Vector Storage (`vectorization.py`)
+```python
+def vectorize_documents(documents):
+    # Create embeddings using HuggingFace models
+    # Store in ChromaDB for fast retrieval
+    # Enable semantic similarity search
+```
+
+**Features:**
+- HuggingFace sentence-transformers embeddings (`all-MiniLM-L6-v2`)
+- ChromaDB persistent vector storage
+- Optimized for CPU inference
+- Document-metadata linking
+
+### 🤖 AI Integration (`retrieval_aug.py`)
+```python
+def create_retrieval_chain(vectorstore):
+    # Setup Ollama LLM with custom mental health model
+    # Configure retrieval with similarity search
+    # Return structured responses with sources
+```
+
+**Features:**
+- Custom Ollama model for mental health psychology
+- Retrieval-based context injection
+- Source document tracking
+- Empathetic response templates
+
+### 🚀 API Server (`api.py`)
+```python
+@app.post("/chat")
+async def chat_endpoint(question: Question):
+    # Process user queries through RAG pipeline
+    # Return structured responses with sources
+    # Handle errors gracefully
+```
+
+**Features:**
+- FastAPI async endpoints
+- CORS-enabled for frontend integration
+- Structured error handling
+- Request/response validation with Pydantic
+- Source document attribution
+
+### 🏃‍♂️ Running the Backend
+
+```bash
+# Install Python dependencies
+pip install fastapi uvicorn langchain langchain-community langchain-ollama chromadb sentence-transformers pandas
+
+# Start the FastAPI server
+cd backend
+uvicorn api:app --reload --host 0.0.0.0 --port 8000
+
+# Backend will be available at http://localhost:8000
+# API docs at http://localhost:8000/docs
+```
+
+### 📊 Data Requirements
+
+The backend expects a CSV file at `data/data.csv` with the following structure:
+```csv
+Context,Response
+"User expressing anxiety about work","I understand that work anxiety can be overwhelming. Let's explore some coping strategies..."
+"Someone feeling depressed","It's important to acknowledge these feelings. Depression is treatable..."
+```
+
+**Required Columns:**
+- `Context`: The user's question or situation description
+- `Response`: The appropriate therapeutic response
+
+**Data Preprocessing:**
+- Text is automatically cleaned and normalized
+- Long responses are chunked into 500-word segments with 50-word overlap
+- Metadata is preserved for source attribution
 
 ## 🔧 Configuration
 
