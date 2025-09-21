@@ -28,6 +28,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [isTTSEnabled, setIsTTSEnabled] = useState(true);
   const [showTTSTest, setShowTTSTest] = useState(false);
   const [testText, setTestText] = useState("I'm here to support you through whatever you're experiencing. Remember, it's okay to not be okay, and seeking support shows great strength.");
+  const [ttsProgress, setTtsProgress] = useState<{ current: number; total: number; chunk?: string } | null>(null);
 
   const handleSendMessage = async () => {
     if (!inputText.trim()) return;
@@ -70,8 +71,24 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         // Convert response to speech if TTS is enabled
         if (isTTSEnabled && response.text) {
           try {
-            const ttsResponse = await ttsService.convertTextToSpeech(response.text);
+            // Show progress for long texts
+            const progressCallback = (current: number, total: number, chunk: string) => {
+              if (total > 1) {
+                setTtsProgress({ current, total, chunk });
+              }
+            };
+
+            const ttsResponse = await ttsService.convertTextToSpeech(response.text, {}, progressCallback);
+            
+            // Clear progress indicator
+            setTtsProgress(null);
+            
             if (ttsResponse.audioUrl) {
+              // Log chunking info if applicable
+              if (ttsResponse.chunksProcessed && ttsResponse.totalChunks) {
+                console.log(`✅ TTS completed: ${ttsResponse.chunksProcessed}/${ttsResponse.totalChunks} chunks processed`);
+              }
+              
               if (ttsResponse.audioUrl.startsWith('browser-tts://')) {
                 // Handle browser TTS - start simple mouth animation
                 startBrowserTTSAnimation(response.text);
@@ -84,6 +101,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             }
           } catch (ttsError) {
             console.error('TTS Error:', ttsError);
+            setTtsProgress(null);
           }
         }
       }
@@ -163,9 +181,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           </div>
           <div className="flex items-center space-x-2 lg:space-x-3">
             <button
-              onClick={() => llmService.testConnection().then(result => 
-                alert(result ? '✅ Connection OK!' : '❌ Connection Failed!')
-              )}
               className="px-2 lg:px-4 py-1 lg:py-2 bg-green-500/10 hover:bg-green-500/20 rounded-xl text-green-400 border border-green-500/20 transition-all duration-200 text-xs lg:text-sm font-medium"
             >
               <span className="hidden sm:inline">Test</span>
@@ -263,6 +278,37 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                     <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                   </div>
                   <span className="text-purple-200/70 text-sm">Thinking...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {ttsProgress && (
+          <div className="flex justify-start">
+            <div className="mr-12">
+              <div className="w-8 h-8 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full flex items-center justify-center mb-2">
+                <svg className="w-4 h-4 text-white animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728m-5.657-2.829a3 3 0 010-4.243m-2.828-2.828a7 7 0 000 9.899" />
+                </svg>
+              </div>
+              <div className="bg-emerald-500/10 backdrop-blur-sm border border-emerald-500/20 px-6 py-4 rounded-2xl max-w-sm shadow-lg shadow-black/20">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-emerald-200 text-sm font-medium">Generating Speech</span>
+                    <span className="text-emerald-300 text-xs">{ttsProgress.current}/{ttsProgress.total}</span>
+                  </div>
+                  <div className="w-full bg-emerald-900/30 rounded-full h-2 overflow-hidden">
+                    <div 
+                      className="bg-gradient-to-r from-emerald-400 to-teal-400 h-2 rounded-full transition-all duration-300 ease-out"
+                      style={{ width: `${(ttsProgress.current / ttsProgress.total) * 100}%` }}
+                    ></div>
+                  </div>
+                  {ttsProgress.chunk && (
+                    <p className="text-emerald-200/70 text-xs truncate">
+                      "{ttsProgress.chunk.substring(0, 40)}..."
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
