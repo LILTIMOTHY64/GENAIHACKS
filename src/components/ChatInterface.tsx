@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { llmService } from '../services/llmService';
 import { ttsService } from '../services/ttsService';
 import AudioController from './AudioController';
@@ -29,6 +29,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [showTTSTest, setShowTTSTest] = useState(false);
   const [testText, setTestText] = useState("I'm here to support you through whatever you're experiencing. Remember, it's okay to not be okay, and seeking support shows great strength.");
   const [ttsProgress, setTtsProgress] = useState<{ current: number; total: number; chunk?: string } | null>(null);
+  const [serviceStatus, setServiceStatus] = useState<string>('Unknown');
+
+  // Initialize service status on component mount
+  useEffect(() => {
+    const initStatus = llmService.getServiceStatus();
+    setServiceStatus(initStatus);
+  }, []);
 
   const handleSendMessage = async () => {
     if (!inputText.trim()) return;
@@ -132,6 +139,26 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     llmService.clearHistory(); // Also clear the LLM service history
   };
 
+  // Test LLM connection and update service status
+  const testLLMConnection = async () => {
+    try {
+      console.log('🧪 Testing AI connections...');
+      const isConnected = await llmService.testConnection();
+      const status = llmService.getServiceStatus();
+      setServiceStatus(status);
+      
+      if (isConnected) {
+        alert(`✅ AI services are working perfectly!`);
+      } else {
+        alert(`⚠️ Using demo mode - AI services offline`);
+      }
+    } catch (error) {
+      console.error('Connection test failed:', error);
+      setServiceStatus('Error');
+      alert('❌ Connection test failed!');
+    }
+  };
+
   // Test browser TTS with improved lip sync
   const testBrowserTTS = async () => {
     try {
@@ -176,12 +203,21 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       <div className="px-4 lg:px-8 py-4 lg:py-6 border-b border-white/10">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg lg:text-xl font-bold text-white">Mental Health Companion</h2>
-            <p className="text-emerald-200/70 text-xs lg:text-sm hidden sm:block">Here to support and listen</p>
+            <div className="flex items-center space-x-2">
+              <h2 className="text-lg lg:text-xl font-bold text-white">Mental Health Companion</h2>
+              {(serviceStatus === 'Demo Mode' || serviceStatus === 'Error') && (
+                <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                  {serviceStatus}
+                </span>
+              )}
+            </div>
+            <p className="text-emerald-200/70 text-xs lg:text-sm">Here to support and listen</p>
           </div>
           <div className="flex items-center space-x-2 lg:space-x-3">
             <button
+              onClick={testLLMConnection}
               className="px-2 lg:px-4 py-1 lg:py-2 bg-green-500/10 hover:bg-green-500/20 rounded-xl text-green-400 border border-green-500/20 transition-all duration-200 text-xs lg:text-sm font-medium"
+              title={`Test AI connection (${serviceStatus})`}
             >
               <span className="hidden sm:inline">Test</span>
               <span className="sm:hidden">✓</span>

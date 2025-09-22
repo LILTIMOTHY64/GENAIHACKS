@@ -48,8 +48,11 @@ An immersive 3D avatar chat application that brings AI conversations to life thr
 - **PostCSS** - CSS processing and optimization
 
 ### AI & Audio
+- **Groq API** - High-speed LLM inference with gemma2-9b-it model
+- **Custom RAG Backend** - Retrieval-augmented generation via ngrok
+- **Multi-tier Fallback System** - Graceful degradation (Primary → Groq → Mock)
 - **ElevenLabs API** - Premium text-to-speech services
-- **Sarvam AI** - Alternative TTS provider
+- **Sarvam AI** - Indian TTS provider with automatic chunking
 - **Custom Lip Sync Engine** - Proprietary audio-visual synchronization
 - **Web Audio API** - Real-time audio processing and analysis
 
@@ -65,8 +68,14 @@ Before running this application, ensure you have:
 - **Node.js** (v18 or higher)
 - **npm** or **yarn** package manager
 - **API Keys** for:
-  - ElevenLabs API
-  - Sarvam AI (optional)
+  - **Groq API** (Primary fallback for LLM)
+  - ElevenLabs API (TTS)
+  - Sarvam AI (TTS fallback)
+
+### LLM Service Architecture
+- **Primary**: Custom ngrok endpoint with RAG backend
+- **Fallback**: Groq API with gemma2-9b-it model  
+- **Final Fallback**: Mock/Demo responses
 
 ### Backend Requirements (Optional - for local AI)
 - **Python** (v3.8 or higher)
@@ -91,13 +100,21 @@ Before running this application, ensure you have:
    
    Create a `.env` file in the root directory:
    ```env
-   # ElevenLabs Configuration
+   # LLM Configuration (Required)
+   VITE_GROQ_API_KEY=your_groq_api_key_here
+   
+   # TTS Configuration
    VITE_ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
    ELEVENLABS_VOICE_ID=your_preferred_voice_id
    
-   # Sarvam AI Configuration (Optional)
+   # Sarvam AI Configuration (TTS Fallback)
    VITE_SARVAM_API_KEY=your_sarvam_api_key_here
    ```
+
+   **API Key Sources:**
+   - **Groq API**: Get from [console.groq.com](https://console.groq.com) - Free tier available
+   - **ElevenLabs**: Get from [elevenlabs.io](https://elevenlabs.io) - Premium TTS service
+   - **Sarvam AI**: Get from [sarvam.ai](https://sarvam.ai) - Free Indian TTS service
 
 4. **Start the development server**
    ```bash
